@@ -1,16 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPBearer, OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.models import User
 from app.utils import get_db
 from passlib.context import CryptContext
 
 router = APIRouter()
+security = HTTPBearer()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
 # Configure password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @router.post("/users")
-def create_user(username: str, password: str, db: Session = Depends(get_db)):
+def create_user(username: str, password: str, db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)):
     hashed_password = pwd_context.hash(password)
     user = User(username=username, password_hash=hashed_password)
     db.add(user)
@@ -19,14 +22,14 @@ def create_user(username: str, password: str, db: Session = Depends(get_db)):
     return user
 
 @router.get("/users/{user_id}")
-def get_user(user_id: int, db: Session = Depends(get_db)):
+def get_user(user_id: int, db: Session = Depends(get_db),  token: str = Depends(oauth2_scheme)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 @router.put("/users/{user_id}")
-def update_user(user_id: int, username: str, password: str, db: Session = Depends(get_db)):
+def update_user(user_id: int, username: str, password: str, db: Session = Depends(get_db),  token: str = Depends(oauth2_scheme)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -37,7 +40,7 @@ def update_user(user_id: int, username: str, password: str, db: Session = Depend
     return user
 
 @router.delete("/users/{user_id}")
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user(user_id: int, db: Session = Depends(get_db),  token: str = Depends(oauth2_scheme)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
