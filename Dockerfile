@@ -1,20 +1,23 @@
-# Base image
-FROM python:3.9-slim-buster
+# Use the official Python image from the Docker Hub
+FROM python:3.11-slim
 
-# Set the working directory in the container
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    SECRET_KEY=${SECRET_KEY} \
+    SQLALCHEMY_DATABASE_URL=${SQLALCHEMY_DATABASE_URL}
+
+# Set work directory
 WORKDIR /app
 
-# Copy the requirements.txt file to the container
+# Install dependencies
 COPY requirements.txt .
-
-# Install the Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code to the container
+# Copy project
 COPY . .
 
-# Expose the port that the application will run on
+# Expose the port
 EXPOSE 8000
 
-# Command to start the application
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the application
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
