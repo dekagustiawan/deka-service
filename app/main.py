@@ -2,15 +2,14 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from fastapi.openapi.docs import get_swagger_ui_html
 from app.api import auth, user, student
-from app.models import user as user_model, student as student_model
+from app.database import Base
 from app.utils import engine
 from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI()
 
 # Create the database tables
-user_model.Base.metadata.create_all(bind=engine)
-student_model.Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 # Include the routers
 app.include_router(auth.router, tags=["Authentication"])
