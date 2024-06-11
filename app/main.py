@@ -1,12 +1,27 @@
 from fastapi import FastAPI
+from fastapi.exceptions import HTTPException
 from fastapi.openapi.utils import get_openapi
 from fastapi.openapi.docs import get_swagger_ui_html
+from sqlalchemy import create_engine
+from sqlalchemy.exc import OperationalError
 from app.api import auth, user, student
 from app.database import Base
 from app.utils import engine
 from fastapi.security import OAuth2PasswordBearer
 
 app = FastAPI()
+
+# Check database connection before starting the application
+try:
+    # Print the database URL
+    print(f"Database URL: {engine.url}")
+    
+    # Attempt to connect to the database
+    with engine.connect():
+        print("Database connected successfully")
+except OperationalError as e:
+    # If connection fails, raise an exception and terminate the application
+    raise HTTPException(status_code=500, detail=f"Database connection error: {str(e)}")
 
 # Create the database tables
 Base.metadata.create_all(bind=engine)
